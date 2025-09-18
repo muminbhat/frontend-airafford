@@ -65,6 +65,331 @@ const ClockIcon = () => (
   </svg>
 );
 
+const InfoIcon = () => (
+  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+);
+
+const XIcon = () => (
+  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+  </svg>
+);
+
+// Airline codes to names mapping
+const AIRLINE_NAMES = {
+  'AA': 'American Airlines',
+  'DL': 'Delta Air Lines',
+  'UA': 'United Airlines',
+  'WN': 'Southwest Airlines',
+  'B6': 'JetBlue Airways',
+  'AS': 'Alaska Airlines',
+  'F9': 'Frontier Airlines',
+  'NK': 'Spirit Airlines',
+  'G4': 'Allegiant Air',
+  'SY': 'Sun Country Airlines',
+  'AC': 'Air Canada',
+  'WS': 'WestJet',
+  'LH': 'Lufthansa',
+  'BA': 'British Airways',
+  'AF': 'Air France',
+  'KL': 'KLM',
+  'LX': 'Swiss International',
+  'OS': 'Austrian Airlines',
+  'SN': 'Brussels Airlines',
+  'IB': 'Iberia',
+  'AZ': 'ITA Airways',
+  'EI': 'Aer Lingus',
+  'SK': 'SAS',
+  'AY': 'Finnair',
+  'EK': 'Emirates',
+  'QR': 'Qatar Airways',
+  'EY': 'Etihad Airways',
+  'TK': 'Turkish Airlines',
+  'SV': 'Saudi Arabian Airlines',
+  'MS': 'EgyptAir',
+  'NH': 'ANA',
+  'JL': 'Japan Airlines',
+  'CX': 'Cathay Pacific',
+  'SQ': 'Singapore Airlines',
+  'TG': 'Thai Airways',
+  'MH': 'Malaysia Airlines',
+  'CI': 'China Airlines',
+  'BR': 'EVA Air',
+  'KE': 'Korean Air',
+  'OZ': 'Asiana Airlines',
+  'JQ': 'Jetstar',
+  'TR': 'Scoot',
+  'AI': 'Air India',
+  '6E': 'IndiGo',
+  'SG': 'SpiceJet',
+  'QF': 'Qantas',
+  'VA': 'Virgin Australia',
+  'NZ': 'Air New Zealand',
+  'LA': 'LATAM Airlines',
+  'AM': 'Aeromexico',
+  'CM': 'Copa Airlines',
+  'AV': 'Avianca',
+  'SA': 'South African Airways',
+  'ET': 'Ethiopian Airlines',
+  'KQ': 'Kenya Airways',
+  'AT': 'Royal Air Maroc',
+};
+
+function getAirlineName(code) {
+  return AIRLINE_NAMES[code] || code;
+}
+
+function FlightDetailModal({ deal, isOpen, onClose }) {
+  if (!isOpen || !deal) return null;
+
+  const hours = Math.round((deal.duration_minutes || 0) / 60);
+  const minutes = (deal.duration_minutes || 0) % 60;
+  const pct = deal.price_pct_drop != null ? Math.round(deal.price_pct_drop * 100) : null;
+  const airlineNames = (deal.airline_codes || []).map(code => getAirlineName(code));
+  
+  const formatDateTime = (dateStr) => {
+    if (!dateStr) return 'N/A';
+    const date = new Date(dateStr);
+    return date.toLocaleString('en-US', {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="flex items-center justify-center min-h-screen p-4">
+        {/* Backdrop */}
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300"
+          onClick={onClose}
+        ></div>
+        
+        {/* Modal */}
+        <div className="relative bg-white rounded-3xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden animate-fade-in">
+          {/* Header */}
+          <div className="gradient-primary p-6 text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-3xl font-bold mb-2">
+                  {deal.origin_iata} → {deal.destination_iata}
+                </h2>
+                <div className="text-blue-100">
+                  Flight Details & Information
+                </div>
+              </div>
+              <button
+                onClick={onClose}
+                className="p-2 hover:bg-white/20 rounded-full transition-colors"
+              >
+                <XIcon />
+              </button>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 overflow-y-auto max-h-[60vh]">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Left Column - Flight Info */}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <PlaneIcon />
+                    Flight Information
+                  </h3>
+                  
+                  <div className="bg-slate-50 rounded-xl p-4 space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-slate-600 font-medium">Route:</span>
+                      <span className="font-bold text-slate-800">{deal.origin_iata} → {deal.destination_iata}</span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-slate-600 font-medium">Trip Type:</span>
+                      <span className="font-bold text-slate-800">{deal.one_way_bool ? "One way" : "Round trip"}</span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-slate-600 font-medium">Duration:</span>
+                      <span className="font-bold text-slate-800">
+                        {hours}h {minutes > 0 && `${minutes}m`}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-slate-600 font-medium">Stops:</span>
+                      <span className="font-bold text-slate-800">
+                        {deal.num_stops === 0 ? "Direct flight" : `${deal.num_stops} stop${deal.num_stops > 1 ? 's' : ''}`}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-slate-600 font-medium">Cabin:</span>
+                      <span className="font-bold text-slate-800 capitalize">
+                        {(deal.cabin_class || 'Economy').replace('_', ' ').toLowerCase()}
+                      </span>
+                    </div>
+                    
+                    <div className="flex justify-between">
+                      <span className="text-slate-600 font-medium">Travelers:</span>
+                      <span className="font-bold text-slate-800">{deal.num_travelers} passenger{deal.num_travelers > 1 ? 's' : ''}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Airlines */}
+                {airlineNames.length > 0 && (
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                      ✈️ Airlines
+                    </h3>
+                    <div className="space-y-2">
+                      {airlineNames.map((airline, index) => (
+                        <div key={index} className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                          <span className="font-semibold text-blue-800">{airline}</span>
+                          <span className="text-blue-600 ml-2 text-sm">({deal.airline_codes[index]})</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Schedule */}
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800 mb-4 flex items-center gap-2">
+                    <CalendarIcon />
+                    Schedule
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    <div className="bg-slate-50 rounded-xl p-4">
+                      <div className="font-semibold text-slate-800 mb-2">Departure</div>
+                      <div className="text-slate-600">{formatDateTime(deal.departure_datetime)}</div>
+                    </div>
+                    
+                    {!deal.one_way_bool && deal.return_datetime && (
+                      <div className="bg-slate-50 rounded-xl p-4">
+                        <div className="font-semibold text-slate-800 mb-2">Return</div>
+                        <div className="text-slate-600">{formatDateTime(deal.return_datetime)}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Pricing & Booking */}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800 mb-4">💰 Pricing Details</h3>
+                  
+                  <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-200">
+                    <div className="text-center mb-4">
+                      <div className="text-4xl font-bold text-slate-800 mb-2">
+                        {deal.currency} {Number(deal.price_total).toFixed(0)}
+                      </div>
+                      <div className="text-slate-600">
+                        Total for {deal.num_travelers} passenger{deal.num_travelers > 1 ? 's' : ''}
+                      </div>
+                    </div>
+                    
+                    {deal.price_baseline && (
+                      <div className="text-center mb-4">
+                        <div className="text-slate-500 line-through text-lg">
+                          {deal.currency} {Number(deal.price_baseline).toFixed(0)}
+                        </div>
+                        {pct && (
+                          <div className="text-emerald-600 font-bold text-lg">
+                            Save {pct}% 🎉
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    
+                    <div className="text-center text-sm text-slate-600">
+                      Price per person: {deal.currency} {Math.round(Number(deal.price_total) / deal.num_travelers)}
+                    </div>
+                  </div>
+                </div>
+
+                {/* AI Score */}
+                {deal.score_int_0_100 != null && (
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-800 mb-4">🤖 AI Analysis</h3>
+                    
+                    <div className="bg-slate-50 rounded-xl p-4">
+                      <div className="mb-3">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-semibold text-slate-800">Deal Score</span>
+                          <span className="text-2xl font-bold text-slate-800">{deal.score_int_0_100}/100</span>
+                        </div>
+                        <Score value={deal.score_int_0_100} />
+                      </div>
+                      
+                      {(deal.score_factors_json || []).length > 0 && (
+                        <div>
+                          <div className="font-semibold text-slate-800 mb-2">Score Factors:</div>
+                          <ul className="space-y-1">
+                            {(deal.score_factors_json || []).map((factor, index) => (
+                              <li key={index} className="text-sm text-slate-600 flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                                {factor}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Badges */}
+                {(deal.badges_json || []).length > 0 && (
+                  <div>
+                    <h3 className="text-xl font-bold text-slate-800 mb-4">🏷️ Deal Highlights</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {(deal.badges_json || []).map((badge, i) => (
+                        <span key={i} className="inline-flex items-center rounded-full bg-gradient-to-r from-blue-100 to-cyan-100 border border-blue-300 px-3 py-2 text-sm font-bold text-blue-800">
+                          {badge}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="border-t bg-slate-50 p-6">
+            <div className="flex gap-4 justify-end">
+              <button
+                onClick={onClose}
+                className="px-6 py-3 border border-slate-300 text-slate-700 font-semibold rounded-xl hover:bg-slate-100 transition-colors"
+              >
+                Close
+              </button>
+              <a
+                href={deal.deep_link || "#"}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-105"
+              >
+                <ExternalLinkIcon />
+                Book This Flight
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Label({ children, required = false }) {
   return (
     <label className="block text-sm font-bold text-slate-700 mb-1">
@@ -191,34 +516,37 @@ function Score({ value }) {
   );
 }
 
-function DealCard({ deal, index }) {
+function DealCard({ deal, index, onViewDetails }) {
   const hours = Math.round((deal.duration_minutes || 0) / 60);
   const pct = deal.price_pct_drop != null ? Math.round(deal.price_pct_drop * 100) : null;
+  const airlineNames = (deal.airline_codes || []).map(code => getAirlineName(code));
   
   return (
     <div 
       className="animate-fade-in group"
       style={{ animationDelay: `${index * 100}ms` }}
     >
-      <a 
-        href={deal.deep_link || "#"} 
-        target="_blank" 
-        rel="noreferrer" 
-        className="block rounded-2xl border border-slate-200 bg-white p-6 hover:border-blue-300 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 hover:scale-[1.02] relative overflow-hidden"
-      >
+      <div className="block rounded-2xl border border-slate-200 bg-white p-6 hover:border-blue-300 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 hover:scale-[1.02] relative overflow-hidden">
         {/* Gradient accent */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-cyan-500"></div>
         
         <div className="flex flex-col sm:flex-row items-start justify-between gap-4 sm:gap-6">
           <div className="flex-1 w-full sm:w-auto">
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex items-center gap-3 mb-2">
               <div className="text-2xl font-bold text-slate-800">
                 {deal.origin_iata} → {deal.destination_iata}
               </div>
-              <div className="text-slate-400 group-hover:text-blue-500 transition-colors">
-                <ExternalLinkIcon />
-              </div>
             </div>
+            
+            {/* Airline Names */}
+            {airlineNames.length > 0 && (
+              <div className="mb-3">
+                <div className="text-sm font-bold text-blue-700">
+                  ✈️ {airlineNames.slice(0, 2).join(" + ")}
+                  {airlineNames.length > 2 && ` +${airlineNames.length - 2} more`}
+                </div>
+              </div>
+            )}
             
             <div className="flex flex-wrap items-center gap-2 text-sm mb-4">
               <div className="flex items-center gap-2 bg-slate-200 rounded-full px-3 py-1">
@@ -236,7 +564,7 @@ function DealCard({ deal, index }) {
             </div>
             
             {(deal.badges_json || []).length > 0 && (
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 mb-4">
                 {(deal.badges_json || []).map((badge, i) => (
                   <span key={i} className="inline-flex items-center rounded-full bg-gradient-to-r from-blue-100 to-cyan-100 border border-blue-300 px-3 py-1 text-xs font-bold text-blue-800">
                     {badge}
@@ -244,6 +572,29 @@ function DealCard({ deal, index }) {
                 ))}
               </div>
             )}
+            
+            {/* Action Buttons */}
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  onViewDetails(deal);
+                }}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold rounded-lg transition-colors duration-200"
+              >
+                <InfoIcon />
+                <span>View Details</span>
+              </button>
+              <a
+                href={deal.deep_link || "#"}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white font-semibold rounded-lg transition-all duration-200"
+              >
+                <ExternalLinkIcon />
+                <span>Book Now</span>
+              </a>
+            </div>
           </div>
           
           <div className="text-left sm:text-right flex-shrink-0 w-full sm:w-auto">
@@ -266,13 +617,13 @@ function DealCard({ deal, index }) {
             
             {deal.score_int_0_100 != null && (
               <div className="mt-4">
-                <div className="text-xs text-slate-500 mb-2 font-semibold">✨ AI Score</div>
+                <div className="text-xs text-slate-600 mb-2 font-bold">✨ AI Score</div>
                 <Score value={deal.score_int_0_100} />
               </div>
             )}
           </div>
         </div>
-      </a>
+      </div>
     </div>
   );
 }
@@ -460,6 +811,8 @@ export default function Home() {
   const [originHints, setOriginHints] = useState([]);
   const [destHints, setDestHints] = useState([]);
   const [errors, setErrors] = useState({});
+  const [selectedDeal, setSelectedDeal] = useState(null);
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const t = setTimeout(async () => setOriginHints(await fetchAirports(origin)), 300);
@@ -560,6 +913,16 @@ export default function Home() {
     if (e.key === 'Enter') {
       onSearch();
     }
+  };
+
+  const handleViewDetails = (deal) => {
+    setSelectedDeal(deal);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedDeal(null);
   };
 
   return (
@@ -801,7 +1164,7 @@ export default function Home() {
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {deals.map((deal, index) => (
-                <DealCard key={index} deal={deal} index={index} />
+                <DealCard key={index} deal={deal} index={index} onViewDetails={handleViewDetails} />
               ))}
             </div>
           </div>
@@ -841,6 +1204,13 @@ export default function Home() {
           </div>
         )}
       </div>
+
+      {/* Flight Detail Modal */}
+      <FlightDetailModal 
+        deal={selectedDeal}
+        isOpen={showModal}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }
